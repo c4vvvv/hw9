@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>來臺旅客人次統計</title>
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/hierarchy.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: 'Noto Sans TC', 'Roboto', sans-serif;
+      background: #f7f9fc;
+    }
+    #chartdiv {
+      width: 100%;
+      height: 100vh;
+    }
+    // 建議用於節點樣式設計
+.node {
+  fill-opacity: 0.9;
+  stroke: #fff;
+  stroke-width: 1px;
+  transition: transform 0.3s ease;
+}
+
+.node:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.3));
+}
+
+.label {
+  font-family: 'Noto Sans TC', 'Roboto', sans-serif;
+  font-size: 14px;
+  fill: #ffffff;
+}
+  </style>
+</head>
+<body>
+  <div id="chartdiv"></div>
+
+<script>
+  am5.ready(function () {
+    var root = am5.Root.new("chartdiv");
+
+    root.setThemes([
+      am5themes_Animated.new(root)
+    ]);
+
+    var container = root.container.children.push(
+      am5.Container.new(root, {
+        width: am5.p100,
+        height: am5.p100,
+        layout: root.verticalLayout
+      })
+    );
+
+    var series = container.children.push(
+      am5hierarchy.ForceDirected.new(root, {
+        singleBranchOnly: false,
+        downDepth: 3,  // Deeper nesting for year and regions
+        initialDepth: 2,
+        topDepth: 0,
+        valueField: "value",
+        categoryField: "name",
+        childDataField: "children",
+        idField: "name",
+        linkWithField: "linkWith",
+        nodePadding: 8,
+        minRadius: 25,
+        maxRadius: 60
+      })
+    );
+
+    series.nodes.template.setAll({
+      draggable: true,
+      cursorOverStyle: "pointer",
+      tooltipText: "{name}: {value}人次",
+      fillOpacity: 0.85,
+      strokeWidth: 2,
+      stroke: am5.color(0xffffff)
+    });
+
+    series.data.setAll([
+      {
+        name: "全球", children: [
+          {
+            name: "109年", children: [
+              { name: "合計", value: 1377861 },
+              { name: "亞洲", value: 1183987 },
+              { name: "香港、澳門", value: 177654 },
+              { name: "中國大陸", value: 111050 },
+              { name: "日本", value: 269659 },
+              { name: "美洲", value: 106117 },
+              { name: "歐洲", value: 59512 },
+              { name: "大洋洲", value: 22606 },
+              { name: "非洲", value: 2502 },
+              { name: "未列明", value: 3137 }
+            ]
+          },
+          {
+            name: "110年", children: [
+              { name: "合計", value: 140479 },
+              { name: "亞洲", value: 105996 },
+              { name: "香港、澳門", value: 10760 },
+              { name: "中國大陸", value: 13267 },
+              { name: "日本", value: 10056 },
+              { name: "美洲", value: 14642 },
+              { name: "歐洲", value: 16413 },
+              { name: "大洋洲", value: 1358 },
+              { name: "非洲", value: 901 },
+              { name: "未列明", value: 1169 }
+            ]
+          },
+          {
+            name: "111年", children: [
+              { name: "合計", value: 895962 },
+              { name: "亞洲", value: 696792 },
+              { name: "香港、澳門", value: 32621 },
+              { name: "中國大陸", value: 24378 },
+              { name: "日本", value: 87616 },
+              { name: "美洲", value: 108842 },
+              { name: "歐洲", value: 65990 },
+              { name: "大洋洲", value: 14920 },
+              { name: "非洲", value: 3410 },
+              { name: "未列明", value: 6008 }
+            ]
+          },
+          {
+            name: "112年", children: [
+              { name: "合計", value: 6486951 },
+              { name: "亞洲", value: 5432055 },
+              { name: "香港、澳門", value: 1199572 },
+              { name: "中國大陸", value: 226269 },
+              { name: "日本", value: 928235 },
+              { name: "美洲", value: 639976 },
+              { name: "歐洲", value: 298986 },
+              { name: "大洋洲", value: 104205 },
+              { name: "非洲", value: 9354 },
+              { name: "未列明", value: 2375 }
+            ]
+          },
+          {
+            name: "113年", children: [
+              { name: "合計", value: 7857686 },
+              { name: "亞洲", value: 6577539 },
+              { name: "香港、澳門", value: 1310977 },
+              { name: "中國大陸", value: 438212 },
+              { name: "日本", value: 1319592 },
+              { name: "美洲", value: 784855 },
+              { name: "歐洲", value: 349981 },
+              { name: "大洋洲", value: 131720 },
+              { name: "非洲", value: 11540 },
+              { name: "未列明", value: 2051 }
+            ]
+          }
+        ]
+      }
+    ]);
+
+    series.appear(1000, 100);
+  });
+</script>
+</body>
+</html>

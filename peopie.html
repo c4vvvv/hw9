@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>110年 ~ 113年 來臺(居住地)人次統計 </title>
+
+</head>
+<body>
+	<!-- Styles -->
+<style>
+  #chartdiv {
+    width: 100%;
+    height: 500px;
+  }
+  
+
+</style>
+
+<!-- amCharts 5 資源 -->
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+<!-- Chart code -->
+<script>
+  am5.ready(function() {
+
+    // 1. 數據改為來臺（居住地）分佈
+    var allData = {
+      "110": {
+        "Asia": 105996,
+        "Japan": 10056,
+        "Korea": 3300,
+        "Hong Kong": 9594,
+        "China": 13267,
+        "Macao": 1166,
+        "Vietnam": 24935,
+        "Thailand": 7570,
+        "Malaysia": 6205,
+        "Singapore": 2417,
+        "Philippines": 9183,
+        "Indonesia": 13819,
+        "India": 1930
+      },
+      "111": {
+        "Asia": 696792,
+        "Japan": 87616,
+        "Korea": 51748,
+        "Hong Kong": 31009,
+        "China": 24378,
+        "Macao": 1612,
+        "Vietnam": 134818,
+        "Thailand": 74434,
+        "Malaysia": 59035,
+        "Singapore": 69507,
+        "Philippines": 64038,
+        "Indonesia": 78162,
+        "India": 9390
+      },
+      "112": {
+        "Asia": 5432055,
+        "Japan": 928235,
+        "Korea": 744727,
+        "Hong Kong": 1104519,
+        "China": 226269,
+        "Macao": 95053,
+        "Vietnam": 382529,
+        "Thailand": 394688,
+        "Malaysia": 437491,
+        "Singapore": 463893,
+        "Philippines": 350487,
+        "Indonesia": 201980,
+        "India": 31584
+      },
+      "113": {
+        "Asia": 6577539,
+        "Japan": 1319592,
+        "Korea": 1003086,
+        "Hong Kong": 1198217,
+        "China": 438212,
+        "Macao": 112760,
+        "Vietnam": 370548,
+        "Thailand": 400038,
+        "Malaysia": 429727,
+        "Singapore": 447841,
+        "Philippines": 467157,
+        "Indonesia": 224477,
+        "India": 38158
+      }
+    };
+
+    // 2. 建立 Root、格式化器 & 主題
+    var root = am5.Root.new("chartdiv");
+
+    root.numberFormatter.setAll({
+      numberFormat: "#,###",
+      bigNumberPrefixes: [
+        { number: 1e6, suffix: "M" },
+        { number: 1e9, suffix: "B" }
+      ],
+      smallNumberPrefixes: []
+    });
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    // 3. 建立 XYChart
+    var chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: true, panY: true,
+        wheelX: "none", wheelY: "none",
+        paddingLeft: 0
+      })
+    );
+    chart.zoomOutButton.set("forceHidden", true);
+
+    // 4. Y 軸（區域）
+    var yRenderer = am5xy.AxisRendererY.new(root, {
+      minGridDistance: 20, inversed: true, minorGridEnabled: true
+    });
+    yRenderer.grid.template.set("visible", false);
+    var yAxis = chart.yAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        categoryField: "region", renderer: yRenderer
+      })
+    );
+
+    // 5. X 軸（人數）
+    var xAxis = chart.xAxes.push(
+      am5xy.ValueAxis.new(root, {
+        min: 0, strictMinMax: true, extraMax: 0.1,
+        renderer: am5xy.AxisRendererX.new(root, {})
+      })
+    );
+    var stepDuration = 3000;
+    xAxis.set("interpolationDuration", stepDuration / 3);
+    xAxis.set("interpolationEasing", am5.ease.linear);
+
+    // 6. 系列（長條）
+    var series = chart.series.push(
+      am5xy.ColumnSeries.new(root, {
+        xAxis: xAxis, yAxis: yAxis,
+        valueXField: "value", categoryYField: "region"
+      })
+    );
+    series.columns.template.setAll({ cornerRadiusBR: 5, cornerRadiusTR: 5 });
+    series.columns.template.adapters.add("fill", (fill, target) =>
+      chart.get("colors").getIndex(series.columns.indexOf(target))
+    );
+    series.columns.template.adapters.add("stroke", (stroke, target) =>
+      chart.get("colors").getIndex(series.columns.indexOf(target))
+    );
+
+    // 7. 年份標籤
+    var label = chart.plotContainer.children.push(
+      am5.Label.new(root, {
+        text: "110 年", fontSize: "6em", opacity: 0.2,
+        x: am5.p100, y: am5.p100, centerX: am5.p100, centerY: am5.p100
+      })
+    );
+
+    // 8. 區域排序函式
+    function getSeriesItem(region) {
+      return series.dataItems.find(di => di.get("categoryY") === region);
+    }
+    function sortCategoryAxis() {
+      series.dataItems.sort((a, b) => b.get("valueX") - a.get("valueX"));
+      am5.array.each(yAxis.dataItems, dataItem => {
+        var seriesDataItem = getSeriesItem(dataItem.get("category"));
+        if (seriesDataItem) {
+          var newIndex = series.dataItems.indexOf(seriesDataItem);
+          var deltaPosition = (newIndex - dataItem.get("index")) / series.dataItems.length;
+          dataItem.set("index", newIndex);
+          dataItem.set("deltaPosition", -deltaPosition);
+          dataItem.animate({ key: "deltaPosition", to: 0, duration: stepDuration/2, easing: am5.ease.out(am5.ease.cubic) });
+        }
+      });
+      yAxis.dataItems.sort((a, b) => a.get("index") - b.get("index"));
+    }
+
+    // 9. 初始化 & 更新資料
+    var year = 110;
+    function setInitialData() {
+      var d = allData[year];
+      var data = [];
+      for (var region in d) {
+        data.push({ region: region, value: d[region] });
+      }
+      yAxis.data.setAll(data);
+      series.data.setAll(data);
+      label.set("text", year + " 年");
+    }
+    function updateData() {
+      year++;
+      if (!allData[year]) {
+        clearInterval(interval);
+        clearInterval(sortInterval);
+        return;
+      }
+      var d = allData[year];
+      var data = [];
+      for (var region in d) {
+        data.push({ region: region, value: d[region] });
+      }
+      series.data.setAll(data);
+      label.set("text", year + " 年");
+    }
+
+   // 10. 啟動動畫循環
+setInitialData();
+
+// 每 4 秒更新一次資料（由原本的 2 秒改為 4 秒）
+var interval = setInterval(updateData, stepDuration);
+
+// 排序檢查頻率改為每 200 毫秒
+var sortInterval = setInterval(sortCategoryAxis, 200);
+
+// 初次進場動畫：時長 3000ms、延遲 1000ms
+series.appear(3000, 1000);
+chart.appear(3000, 1000);
+}); // end am5.ready()
+</script>
+
+<!-- HTML 容器 -->
+<div id="chartdiv"></div>
+</body>
+</html>
